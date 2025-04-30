@@ -11,6 +11,7 @@ class UserCreditController extends Controller
     public function show(User $user)
     {
         Gate::authorize('manage-customer-credits');
+
         return view('credits.show', compact('user'));
     }
 
@@ -18,14 +19,14 @@ class UserCreditController extends Controller
     {
         Gate::authorize('manage-customer-credits');
 
-        $request->validate([
+        $validated = $request->validate([
             'amount' => 'required|numeric|min:0'
         ]);
 
-        $amount = $request->input('amount');
-        $user->addCredit($amount);
+        $user->addCredit($validated['amount']);
 
-        return redirect()->route('credits.show', $user)
-            ->with('success', 'Credit added successfully.');
+        return redirect()
+            ->route('credits.show', $user)
+            ->with('success', 'Credit has been added successfully.');
     }
-} 
+}

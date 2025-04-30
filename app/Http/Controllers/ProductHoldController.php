@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ProductHoldController extends Controller
 {
     public function toggleHold(Product $product)
     {
-        if (!auth()->user()->can('hold_products')) {
-            return back()->with('error', 'You do not have permission to hold products.');
-        }
+        Gate::authorize('hold_products');
 
-        $product->update(['hold' => !$product->hold]);
+        $product->update([
+            'hold' => !$product->hold
+        ]);
 
-        $action = $product->hold ? 'held' : 'unheld';
-        return back()->with('success', "Product has been {$action} successfully.");
+        $status = $product->hold ? 'placed on hold' : 'released from hold';
+
+        return redirect()->back()->with('success', "Product has been {$status} successfully.");
     }
-} 
+}
