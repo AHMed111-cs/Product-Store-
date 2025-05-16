@@ -11,6 +11,9 @@ use App\Http\Controllers\GoogleController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Spatie\Permission\Traits\HasRoles;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\SettingsController;
 
 Route::get('register', [UsersController::class, 'register'])->name('register');
 Route::post('register', [UsersController::class, 'doRegister'])->name('do_register');
@@ -49,7 +52,7 @@ Route::get('/test', function () {
 
 Route::middleware(['auth'])->group(function () {
     // Product routes
-    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products', [ProductController::class, 'index'])->middleware('auth')->name('products.index');
 
     // Employee routes for product management
     Route::middleware(['can:manage-products'])->group(function () {
@@ -89,6 +92,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/products/{product}/like', [ProductLikeController::class, 'toggleLike'])
         ->name('products.like')
         ->middleware('auth');
+
+    // Checkout routes
+    Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
 });
 
 // Google Authentication Routes
@@ -113,9 +120,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Protected Routes that require email verification
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Product routes
-    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products', [ProductController::class, 'index'])->middleware('auth')->name('products.index');
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
     // Purchase routes
@@ -152,6 +159,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['can:manage-employees'])->group(function () {
         Route::resource('employees', EmployeeController::class);
     });
+});
+
+Route::post('/cart/buy-now/{product}', [\App\Http\Controllers\CartController::class, 'buyNow'])->name('cart.buyNow');
+Route::post('/cart/add/{product}', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+Route::get('/cart', [\App\Http\Controllers\CartController::class, 'show'])->name('cart.show');
+Route::post('/cart/remove/{product}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/update-qty/{product}', [\App\Http\Controllers\CartController::class, 'updateQty'])->name('cart.updateQty');
+
+Route::get('/purchases/{purchase}/tracking', [\App\Http\Controllers\PurchaseController::class, 'tracking'])->name('purchases.tracking');
+Route::middleware(['role:admin|driver'])->group(function () {
+    Route::post('/purchases/{purchase}/update-status', [\App\Http\Controllers\PurchaseController::class, 'updateStatus'])->name('purchases.updateStatus');
+});
+
+// Admin Routes
+Route::middleware(['role:admin'])->group(function () {
+    Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'edit'])->name('settings.edit');
+    Route::post('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
 });
 
 

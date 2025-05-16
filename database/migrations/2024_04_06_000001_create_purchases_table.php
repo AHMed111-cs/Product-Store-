@@ -14,6 +14,15 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->integer('quantity');
             $table->decimal('total_price', 10, 2);
+            $table->string('delivery_method');
+            $table->string('delivery_address')->nullable();
+            $table->string('pickup_branch')->nullable();
+            $table->string('color');
+            $table->string('payment_method');
+            $table->string('card_last4')->nullable();
+            $table->string('order_status')->default('Pending');
+            $table->timestamp('estimated_delivery_time')->nullable();
+            $table->timestamp('delivered_at')->nullable();
             $table->timestamps();
         });
     }

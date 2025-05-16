@@ -11,29 +11,27 @@ class ProductLikeController extends Controller
 {
     public function toggleLike(Product $product)
     {
-        $user = Auth::user();
-
-        // ✅ تحقق من صلاحية الدور
-        if (!$user->hasRole('customer')) {
-            return redirect()->back()->with('error', 'Only customers can like products.');
+        if (!Auth::user()->hasRole('customer')) {
+            return back()->with('error', 'Only customers can like products.');
         }
 
-        // ✅ تحقق من الشراء المسبق
-        if (!$product->hasBeenPurchasedBy($user)) {
-            return redirect()->back()->with('error', 'You can only like products you have purchased.');
+        // Check if user has purchased the product
+        if (!$product->hasBeenPurchasedBy(Auth::user())) {
+            return back()->with('error', 'You can only like products you have purchased.');
         }
 
-        // ✅ إلغاء الإعجاب إذا كان موجوداً
-        if ($product->isLikedBy($user)) {
-            $product->likes()->where('user_id', $user->id)->delete();
-            return redirect()->back()->with('success', 'You have unliked the product.');
+        // Check if user has already liked the product
+        if ($product->isLikedBy(Auth::user())) {
+            $product->likes()->where('user_id', Auth::id())->delete();
+            return back()->with('success', 'Product unliked successfully.');
         }
 
-        // ✅ إنشاء إعجاب جديد
-        $product->likes()->create([
-            'user_id' => $user->id,
+        // Create new like
+        ProductLike::create([
+            'user_id' => Auth::id(),
+            'product_id' => $product->id
         ]);
 
-        return redirect()->back()->with('success', 'Product liked successfully.');
+        return back()->with('success', 'Product liked successfully.');
     }
-}
+} 

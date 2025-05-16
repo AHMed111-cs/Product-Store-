@@ -53,101 +53,46 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
         @foreach($products as $product)
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="mb-2">{{ $product->name }}</h2>
-                    <p class="text-muted mb-4">Your Credit: ${{ number_format(auth()->user()->credit->amount ?? 0, 2) }}</p>
-
-                    <div class="row mb-2 bg-light">
-                        <div class="col-md-2 py-2">
-                            <strong>Name</strong>
-                        </div>
-                        <div class="col-md-10 py-2">
-                            {{ $product->name }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-2">
-                        <div class="col-md-2 py-2">
-                            <strong>Model</strong>
-                        </div>
-                        <div class="col-md-10 py-2">
-                            {{ $product->model }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-2 bg-light">
-                        <div class="col-md-2 py-2">
-                            <strong>Code</strong>
-                        </div>
-                        <div class="col-md-10 py-2">
-                            {{ $product->code }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-2">
-                        <div class="col-md-2 py-2">
-                            <strong>Price</strong>
-                        </div>
-                        <div class="col-md-10 py-2">
-                            ${{ number_format($product->price, 2) }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-2 bg-light">
-                        <div class="col-md-2 py-2">
-                            <strong>Stock</strong>
-                        </div>
-                        <div class="col-md-10 py-2">
-                            {{ $product->stock_quantity }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-2 py-2">
-                            <strong>Description</strong>
-                        </div>
-                        <div class="col-md-10 py-2">
-                            {{ $product->description }}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12 text-center">
-                            @if($product->stock_quantity <= 0)
-                                <button class="btn btn-secondary me-2" style="min-width: 120px;" disabled>Out of Stock</button>
-                            @else
-                                @if(auth()->user()->hasRole('customer'))
-                                    <a href="{{ route('products.show', $product) }}" class="btn btn-info me-2" style="min-width: 120px;">View</a>
-                                    <form action="{{ route('purchases.store', $product) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn btn-success" style="min-width: 120px;">Buy Now</button>
-                                    </form>
-                                @endif
-                            @endif
-
-                            @can('manage-products')
-                                <a href="{{ route('products.edit', $product) }}" class="btn btn-warning me-2" style="min-width: 120px;">Edit</a>
-                                <form action="{{ route('products.destroy', $product) }}" method="POST" class="d-inline">
+        <div class="col">
+            <div class="card h-100 shadow-sm product-card">
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:220px;overflow:hidden;">
+                    @if($product->image)
+                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded" style="object-fit:cover; width:100%; height:100%; min-height:180px;">
+                    @else
+                        <img src="https://via.placeholder.com/300x220?text=No+Image" alt="No image" class="img-fluid rounded" style="object-fit:cover; width:100%; height:100%; min-height:180px;">
+                    @endif
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-2">{{ $product->name }}</h5>
+                    <div class="mb-2 text-primary fs-5 fw-semibold">${{ number_format($product->price, 2) }}</div>
+                    <p class="card-text text-muted small mb-2">{{ Str::limit($product->description, 60) }}</p>
+                    <div class="mt-auto">
+                        @if($product->stock_quantity <= 0)
+                            <button class="btn btn-outline-secondary w-100" disabled>Out of Stock</button>
+                        @else
+                            @if(auth()->user()->hasRole('customer'))
+                                <form action="{{ route('cart.add', $product) }}" method="POST" class="mb-2">
                                     @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger" style="min-width: 120px;" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+                                    <button type="submit" class="btn btn-outline-primary w-100">Add to Cart</button>
                                 </form>
-                            @endcan
-
-                            @if(auth()->check() && auth()->user()->can('hold_products'))
-                                <form action="{{ route('products.hold', $product) }}" method="POST" class="d-inline">
+                                <form action="{{ route('cart.buyNow', $product) }}" method="POST" class="mt-2">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm {{ $product->hold ? 'btn-success' : 'btn-warning' }}">
-                                        {{ $product->hold ? 'Unhold' : 'Hold' }}
-                                    </button>
+                                    <button type="submit" class="btn btn-primary w-100">Buy Now</button>
                                 </form>
                             @endif
+                        @endif
+                        @can('manage-products')
+                        <div class="d-flex gap-2 mt-2">
+                            <a href="{{ route('products.edit', $product) }}" class="btn btn-outline-warning btn-sm flex-fill">Edit</a>
+                            <form action="{{ route('products.destroy', $product) }}" method="POST" class="d-inline flex-fill" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">Delete</button>
+                            </form>
                         </div>
+                        @endcan
                     </div>
                 </div>
             </div>
@@ -165,4 +110,9 @@
         {{ $products->links() }}
     </div>
 </div>
+
+<style>
+.product-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.10); transform: translateY(-2px); transition: 0.2s; }
+.product-card .card-title { font-size: 1.2rem; }
+</style>
 @endsection

@@ -2,27 +2,20 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Role;
 use Closure;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class AssignCustomerRole
 {
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
 
         if ($user && !$user->roles()->exists()) {
-            if ($role !== 'customer') {
-                $customerRole = Role::where('name', 'customer')->first();
-
-                if ($customerRole) {
-                    $user->roles()->attach($customerRole->id);
-                }
-            }
+            $user->assignRole('customer');
         }
 
         return $next($request);
     }
-
 }

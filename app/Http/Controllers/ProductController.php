@@ -73,7 +73,7 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         try {
@@ -81,11 +81,12 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
-                $path = $image->storeAs('products', $imageName, 'public');
-                if (!$path) {
-                    throw new \Exception('Failed to upload image');
-                }
-                $validated['image'] = $path;
+                
+                // Move image directly to public/products directory
+                $image->move(public_path('products'), $imageName);
+                
+                // Store only the filename in the database
+                $validated['image'] = $imageName;
             }
 
             $product = Product::create($validated);
@@ -93,6 +94,9 @@ class ProductController extends Controller
             return redirect()->route('products.index')
                 ->with('success', 'Product created successfully.');
         } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Product creation failed: ' . $e->getMessage());
+            
             return back()->withInput()
                 ->withErrors(['error' => 'Failed to create product. ' . $e->getMessage()]);
         }
@@ -115,24 +119,25 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         try {
             // Handle image upload
             if ($request->hasFile('image')) {
                 // Delete old image if exists
-                if ($product->image && Storage::disk('public')->exists($product->image)) {
-                    Storage::disk('public')->delete($product->image);
+                if ($product->image && file_exists(public_path('products/' . $product->image))) {
+                    unlink(public_path('products/' . $product->image));
                 }
 
                 $image = $request->file('image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
-                $path = $image->storeAs('products', $imageName, 'public');
-                if (!$path) {
-                    throw new \Exception('Failed to upload image');
-                }
-                $validated['image'] = $path;
+                
+                // Move image directly to public/products directory
+                $image->move(public_path('products'), $imageName);
+                
+                // Store only the filename in the database
+                $validated['image'] = $imageName;
             }
 
             $product->update($validated);
@@ -140,6 +145,9 @@ class ProductController extends Controller
             return redirect()->route('products.index')
                 ->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Product update failed: ' . $e->getMessage());
+            
             return back()->withInput()
                 ->withErrors(['error' => 'Failed to update product. ' . $e->getMessage()]);
         }
@@ -166,10 +174,12 @@ class ProductController extends Controller
 
     public function toggleHold(Product $product)
     {
+        Gate::authorize('manage-products');
+        
         $product->hold = !$product->hold;
         $product->save();
 
         $status = $product->hold ? 'held' : 'unheld';
         return redirect()->back()->with('success', "Product has been {$status}.");
     }
-} 
+}

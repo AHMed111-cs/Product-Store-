@@ -21,6 +21,18 @@
                         <a class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}" 
                            href="{{ route('purchases.index') }}">My Purchases</a>
                     </li>
+                    <li class="nav-item position-relative">
+                        <a class="nav-link" href="{{ route('cart.show') }}">
+                            <i class="fas fa-shopping-cart"></i>
+                            Cart
+                            @php $cartCount = session('cart') ? collect(session('cart'))->sum('quantity') : 0; @endphp
+                            @if($cartCount > 0)
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ $cartCount }}
+                                </span>
+                            @endif
+                        </a>
+                    </li>
                     @endrole
                     
                     @hasanyrole('admin|employee')
@@ -38,6 +50,17 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}" 
                            href="{{ route('employees.index') }}">Employees</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" 
+                           href="{{ route('admin.orders.index') }}">
+                            <i class="fas fa-shopping-cart"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.edit') }}">
+                            <i class="fas fa-cog"></i> Site Settings
+                        </a>
                     </li>
                     @endrole
                 @endauth

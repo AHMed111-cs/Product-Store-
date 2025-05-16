@@ -13,7 +13,16 @@ class Purchase extends Model
         'user_id',
         'product_id',
         'quantity',
-        'total_price'
+        'total_price',
+        'delivery_method',
+        'delivery_address',
+        'pickup_branch',
+        'color',
+        'payment_method',
+        'card_last4',
+        'order_status',
+        'estimated_delivery_time',
+        'delivered_at'
     ];
 
     protected $casts = [
