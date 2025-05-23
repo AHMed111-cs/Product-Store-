@@ -6,7 +6,7 @@ use App\Http\Controllers\Web\UsersController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\UserCreditController;
-use App\Http\Controllers\EmployeeController;
+
 use App\Http\Controllers\ProductLikeController;
 use App\Http\Controllers\GoogleController;
 use Illuminate\Auth\Events\Verified;
@@ -55,27 +55,28 @@ Route::get('/test', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    // Product routes
-    Route::get('/products', [ProductController::class, 'index'])->middleware('auth')->name('products.index');
+    // Product routes - غيرناها لـ clothes
+    Route::get('/clothes', [ProductController::class, 'index'])->middleware(['auth', 'verified'])->name('products.index');
+    Route::get('/clothes/dashboard', [ProductController::class, 'index'])->middleware('auth')->name('products.dashboard');
 
     // Employee routes for product management
     Route::middleware(['can:manage-products'])->group(function () {
-        Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
-        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-        Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
-        Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-        Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-        Route::post('/products/{product}/hold', [ProductController::class, 'toggleHold'])
+        Route::get('/clothes/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('/clothes', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/clothes/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('/clothes/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/clothes/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+        Route::post('/clothes/{product}/hold', [ProductController::class, 'toggleHold'])
             ->name('products.hold')
             ->middleware('can:hold_products');
     });
 
     // This needs to be after the create route
-    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/clothes/{product}', [ProductController::class, 'show'])->name('products.show');
 
     // Purchase routes
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
-    Route::post('/products/{product}/purchase', [PurchaseController::class, 'store'])->name('purchases.store');
+    Route::post('/clothes/{product}/purchase', [PurchaseController::class, 'store'])->name('purchases.store');
 
     // Credit management routes
     Route::middleware(['can:manage-customer-credits'])->group(function () {
@@ -88,12 +89,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/{user}/manage-credit', [UserCreditController::class, 'manageCredit'])->name('users.manage-credit');
 
     // Product like routes
-    Route::post('/products/{product}/like', [ProductLikeController::class, 'toggleLike'])
+    Route::post('/clothes/{product}/like', [ProductLikeController::class, 'toggleLike'])
         ->name('products.like')
         ->middleware('auth');
 
     // Product review routes
-    Route::post('/products/{product}/review', [ProductController::class, 'addReview'])
+    Route::post('/clothes/{product}/review', [ProductController::class, 'addReview'])
         ->name('products.review')
         ->middleware('auth');
 
@@ -102,7 +103,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
 
     // Product favourite routes
-    Route::post('/products/{product}/favourite', [ProductController::class, 'favourite'])->name('products.favourite')->middleware('auth');
+    Route::post('/clothes/{product}/favourite', [ProductController::class, 'favourite'])->name('products.favourite')->middleware('auth');
 });
 
 // Google Authentication Routes
@@ -126,48 +127,6 @@ Route::middleware(['auth'])->group(function () {
     })->middleware(['throttle:6,1'])->name('verification.send');
 });
 
-// Protected Routes that require email verification
-Route::middleware(['auth'])->group(function () {
-    // Product routes
-    Route::get('/products', [ProductController::class, 'index'])->middleware('auth')->name('products.index');
-    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
-
-    // Purchase routes
-    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
-    Route::post('/products/{product}/purchase', [PurchaseController::class, 'store'])->name('purchases.store');
-
-    // Product like routes
-    Route::post('/products/{product}/like', [ProductLikeController::class, 'toggleLike'])
-        ->name('products.like');
-
-    // Employee routes for product management
-    Route::middleware(['can:manage-products'])->group(function () {
-        Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
-        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-        Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
-        Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-        Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-        Route::post('/products/{product}/hold', [ProductController::class, 'toggleHold'])
-            ->name('products.hold')
-            ->middleware('can:hold_products');
-    });
-
-    // Credit management routes
-    Route::middleware(['can:manage-customer-credits'])->group(function () {
-        Route::get('/users/{user}/credits', [UserCreditController::class, 'show'])->name('credits.show');
-        Route::put('/users/{user}/credits', [UserCreditController::class, 'update'])->name('credits.update');
-    });
-
-    // User Management Routes
-    Route::get('/users/manage', [UsersController::class, 'manageUsers'])->name('users.manage');
-    Route::post('/users/{user}/manage-credit', [UsersController::class, 'manageCredit'])->name('users.manage-credit');
-
-    // Employee Management Routes
-    Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-        Route::resource('employees', EmployeeController::class);
-    });
-});
-
 Route::post('/cart/buy-now/{product}', [\App\Http\Controllers\CartController::class, 'buyNow'])->name('cart.buyNow');
 Route::post('/cart/add/{product}', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
 Route::get('/cart', [\App\Http\Controllers\CartController::class, 'show'])->name('cart.show');
@@ -189,9 +148,6 @@ Route::post('/upload-image', [ImageUploadController::class, 'store'])->name('ima
 Route::get('/upload-image', function () {
     return view('image-upload');
 })->name('image.upload.form');
-
-
-
 
 Route::get('/favourites', [App\Http\Controllers\ProductController::class, 'favourites'])->name('products.favourites')->middleware('auth');
 
@@ -289,7 +245,6 @@ Route::middleware(['auth', 'role:driver'])->prefix('driver')->group(function () 
     Route::get('/orders/{order}', [OrderController::class, 'driverOrderShow'])->name('driver.orders.show');
     Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('driver.orders.updateStatus');
 });
-
 
 // Driver Management Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {

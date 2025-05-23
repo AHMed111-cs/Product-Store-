@@ -63,10 +63,7 @@
                             <i class="fas fa-image"></i> Manage Hero Section
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}" 
-                           href="{{ route('employees.index') }}">Employees</a>
-                    </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" 
                            href="{{ route('admin.orders.index') }}">
