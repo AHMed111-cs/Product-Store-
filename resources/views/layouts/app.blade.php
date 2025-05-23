@@ -15,45 +15,12 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #f5f5f5;
-        }
-        main {
-            flex: 1;
-        }
-        .navbar {
-            background-color: #ffffff !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .navbar-brand {
-            font-weight: bold;
-            color: #0d6efd !important;
-        }
-        .nav-link {
-            color: #0d6efd !important;
-        }
-        .nav-link:hover {
-            color: #0a58ca !important;
-        }
-        .credit-balance {
-            color: #198754;
-            font-weight: bold;
-        }
-        .welcome-header {
-            color: #666666;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
+    <div style="background:#111; color:#fff; font-size:14px; padding:6px 0; text-align:center;">
+        Free shipping, 30-day return or refund guarantee.
+    </div>
     @include('layouts.menu')
 
     <main class="py-4">
@@ -81,6 +48,10 @@
                     </ul>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
+            @endif
+
+            @if(auth()->user() && auth()->user()->is_admin)
+                <a href="{{ route('admin.hero.edit') }}">إدارة الهيرو سيكشن</a>
             @endif
 
             @yield('content')

@@ -21,6 +21,12 @@
                         <a class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}" 
                            href="{{ route('purchases.index') }}">My Purchases</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('products.favourites') ? 'active' : '' }}" 
+                           href="{{ route('products.favourites') }}">
+                            <i class="fas fa-star"></i> Favourites
+                        </a>
+                    </li>
                     <li class="nav-item position-relative">
                         <a class="nav-link" href="{{ route('cart.show') }}">
                             <i class="fas fa-shopping-cart"></i>
@@ -48,6 +54,12 @@
                     
                     @role('admin')
                     <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.hero.edit') ? 'active' : '' }}" 
+                           href="{{ route('admin.hero.edit') }}">
+                            <i class="fas fa-image"></i> Manage Hero Section
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}" 
                            href="{{ route('employees.index') }}">Employees</a>
                     </li>
@@ -55,11 +67,6 @@
                         <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" 
                            href="{{ route('admin.orders.index') }}">
                             <i class="fas fa-shopping-cart"></i> Orders
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.edit') }}">
-                            <i class="fas fa-cog"></i> Site Settings
                         </a>
                     </li>
                     @endrole

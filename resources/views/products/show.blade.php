@@ -27,6 +27,30 @@
                         <div class="mb-2 text-muted">Code: <span class="fw-semibold">{{ $product->code }}</span></div>
                         <div class="mb-2 text-muted">Model: <span class="fw-semibold">{{ $product->model }}</span></div>
                         <div class="mb-3">{{ $product->description }}</div>
+
+                        @if($product->review)
+                            <div class="mb-4">
+                                <h5>Review:</h5>
+                                <p class="text-muted">{{ $product->review }}</p>
+                            </div>
+                        @endif
+
+                        @can('add_review')
+                            <div class="mb-4">
+                                <h5>Add Review:</h5>
+                                <form action="{{ route('products.review', $product) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <textarea name="review" class="form-control @error('review') is-invalid @enderror" rows="4" placeholder="Write your review here...">{{ old('review') }}</textarea>
+                                        @error('review')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                                </form>
+                            </div>
+                        @endcan
+
                         @if(auth()->check() && auth()->user()->hasRole('customer'))
                             <!-- Buy Button with Icon -->
                             <button type="button" class="btn btn-primary btn-lg mt-2" data-bs-toggle="modal" data-bs-target="#purchaseModal">

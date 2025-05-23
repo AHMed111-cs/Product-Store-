@@ -13,14 +13,17 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Spatie\Permission\Traits\HasRoles;
 use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\ImageUploadController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HeroSectionController;
+use App\Models\HeroSection;
 
 Route::get('register', [UsersController::class, 'register'])->name('register');
 Route::post('register', [UsersController::class, 'doRegister'])->name('do_register');
 Route::get('login', [UsersController::class, 'login'])->name('login');
 Route::post('login', [UsersController::class, 'doLogin'])->name('do_login');
 Route::post('logout', [UsersController::class, 'doLogout'])->name('logout');
-Route::get('users', [UsersController::class, 'list'])->name('users');
+Route::get('/users', [\App\Http\Controllers\Web\UsersController::class, 'list'])->name('users.index');
 Route::get('users/profile/{user?}', [UsersController::class, 'profile'])->name('users.profile');
 Route::get('users/edit/{user?}', [UsersController::class, 'edit'])->name('users_edit');
 Route::post('users/save/{user}', [UsersController::class, 'save'])->name('users_save');
@@ -28,9 +31,7 @@ Route::get('users/delete/{user}', [UsersController::class, 'delete'])->name('use
 Route::get('users/edit_password/{user?}', [UsersController::class, 'editPassword'])->name('edit_password');
 Route::post('users/save_password/{user}', [UsersController::class, 'savePassword'])->name('save_password');
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [HomeController::class, 'home'])->name('home');
 
 Route::get('/multable', function (Request $request) {
     $j = $request->number??5;
@@ -83,19 +84,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users/manage', [UsersController::class, 'manageUsers'])->name('users.manage');
     Route::post('/users/{user}/manage-credit', [UsersController::class, 'manageCredit'])->name('users.manage-credit');
 
-    // Employee Management Routes
-    Route::middleware(['auth', 'can:manage-employees'])->group(function () {
-        Route::resource('employees', EmployeeController::class);
-    });
-
     // Product like routes
     Route::post('/products/{product}/like', [ProductLikeController::class, 'toggleLike'])
         ->name('products.like')
         ->middleware('auth');
 
+    // Product review routes
+    Route::post('/products/{product}/review', [ProductController::class, 'addReview'])
+        ->name('products.review')
+        ->middleware('auth');
+
     // Checkout routes
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
+
+    // Product favourite routes
+    Route::post('/products/{product}/favourite', [ProductController::class, 'favourite'])->name('products.favourite')->middleware('auth');
 });
 
 // Google Authentication Routes
@@ -156,7 +160,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/{user}/manage-credit', [UsersController::class, 'manageCredit'])->name('users.manage-credit');
 
     // Employee Management Routes
-    Route::middleware(['can:manage-employees'])->group(function () {
+    Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         Route::resource('employees', EmployeeController::class);
     });
 });
@@ -177,9 +181,17 @@ Route::middleware(['role:admin'])->group(function () {
     Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
 });
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'edit'])->name('settings.edit');
-    Route::post('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
+Route::post('/upload-image', [ImageUploadController::class, 'store'])->name('image.upload');
+
+Route::get('/upload-image', function () {
+    return view('image-upload');
+})->name('image.upload.form');
+
+Route::get('/favourites', [App\Http\Controllers\ProductController::class, 'favourites'])->name('products.favourites')->middleware('auth');
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/hero-section', [HeroSectionController::class, 'edit'])->name('admin.hero.edit');
+    Route::post('/admin/hero-section', [HeroSectionController::class, 'update'])->name('admin.hero.update');
 });
 
 
