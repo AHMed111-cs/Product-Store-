@@ -77,14 +77,10 @@ class ProductController extends Controller
         ]);
 
         try {
-            // Handle image upload
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-                $imageName = time() . '_' . $image->getClientOriginalName();
-                $path = $image->storeAs('products', $imageName, 'public');
-                if (!$path) {
-                    throw new \Exception('Failed to upload image');
-                }
+                $filename = time() . '_' . $image->getClientOriginalName();
+                $path = $image->storeAs('products', $filename, 'public');
                 $validated['image'] = $path;
             }
 
@@ -119,7 +115,6 @@ class ProductController extends Controller
         ]);
 
         try {
-            // Handle image upload
             if ($request->hasFile('image')) {
                 // Delete old image if exists
                 if ($product->image && Storage::disk('public')->exists($product->image)) {
@@ -127,11 +122,8 @@ class ProductController extends Controller
                 }
 
                 $image = $request->file('image');
-                $imageName = time() . '_' . $image->getClientOriginalName();
-                $path = $image->storeAs('products', $imageName, 'public');
-                if (!$path) {
-                    throw new \Exception('Failed to upload image');
-                }
+                $filename = time() . '_' . $image->getClientOriginalName();
+                $path = $image->storeAs('products', $filename, 'public');
                 $validated['image'] = $path;
             }
 
@@ -179,7 +171,6 @@ class ProductController extends Controller
         if (!auth()->user()->hasRole('customer')) {
             abort(403);
         }
-
 
         $product->favourite = !$product->favourite;
         $product->save();
